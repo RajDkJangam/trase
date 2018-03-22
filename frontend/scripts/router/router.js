@@ -12,7 +12,8 @@ import {
   getTestimonialsContent,
   getTweetsContent,
   resetToolThunk,
-  loadInitialDataHome
+  loadInitialDataHome,
+  scrollTop
 } from 'react-components/home/home.thunks';
 import { withSidebarNavLayout } from 'react-components/nav/sidebar-nav/with-sidebar-nav-layout.hoc';
 import { getProfileRootNodes } from 'react-components/profile-root/profile-root.thunks';
@@ -20,7 +21,8 @@ import { getPageStaticContent } from 'react-components/static-content/static-con
 import { getTeam } from 'react-components/team/team.thunks';
 import { loadInitialDataExplore, redirectToExplore } from 'react-components/explore/explore.thunks';
 
-const dispatchThunks = (...thunks) => (...params) => thunks.forEach(thunk => thunk(...params));
+const dispatchThunks = (...thunks) => async (...params) =>
+  thunks.forEach(async thunk => thunk(...params));
 
 const config = {
   basename: '/',
@@ -32,7 +34,8 @@ const config = {
   restoreScroll: restoreScroll({
     shouldUpdateScroll: (prev, locationState) => prev.pathname !== locationState.pathname
   }),
-  onBeforeChange: dispatchThunks(redirectToExplore, resetToolThunk)
+  onBeforeChange: dispatchThunks(redirectToExplore, resetToolThunk),
+  onAfterChange: dispatchThunks(scrollTop)
 };
 
 const routes = {
