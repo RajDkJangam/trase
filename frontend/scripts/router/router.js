@@ -12,8 +12,7 @@ import {
   getTestimonialsContent,
   getTweetsContent,
   resetToolThunk,
-  loadInitialDataHome,
-  scrollTop
+  loadInitialDataHome
 } from 'react-components/home/home.thunks';
 import { withSidebarNavLayout } from 'react-components/nav/sidebar-nav/with-sidebar-nav-layout.hoc';
 import { getProfileRootNodes } from 'react-components/profile-root/profile-root.thunks';
@@ -21,8 +20,10 @@ import { getPageStaticContent } from 'react-components/static-content/static-con
 import { getTeam } from 'react-components/team/team.thunks';
 import { loadInitialDataExplore, redirectToExplore } from 'react-components/explore/explore.thunks';
 
-const dispatchThunks = (...thunks) => async (...params) =>
-  thunks.forEach(async thunk => thunk(...params));
+// We await for all thunks using Promise.all, this makes the result then-able and allows us to
+// add an await solely to the thunks that need it.
+const dispatchThunks = (...thunks) => (...params) =>
+  Promise.all(thunks.map(thunk => thunk(...params)));
 
 const config = {
   basename: '/',
@@ -32,10 +33,19 @@ const config = {
     stringify
   },
   restoreScroll: restoreScroll({
-    shouldUpdateScroll: (prev, locationState) => prev.pathname !== locationState.pathname
+    shouldUpdateScroll: (prev, current) => {
+      const currentQuery = current.payload.query;
+      if (
+        currentQuery &&
+        prev.query.lang !== currentQuery.lang &&
+        prev.pathname === current.pathname
+      ) {
+        return prev.prev.pathname !== current.pathname ? [0, 0] : false;
+      }
+      return prev.pathname !== current.pathname ? [0, 0] : false;
+    }
   }),
-  onBeforeChange: dispatchThunks(redirectToExplore, resetToolThunk),
-  onAfterChange: dispatchThunks(scrollTop)
+  onBeforeChange: dispatchThunks(redirectToExplore, resetToolThunk)
 };
 
 const routes = {
