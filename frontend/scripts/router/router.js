@@ -37,6 +37,7 @@ const config = {
       const currentQuery = current.payload.query;
       if (
         currentQuery &&
+        prev.query &&
         prev.query.lang !== currentQuery.lang &&
         prev.pathname === current.pathname
       ) {
